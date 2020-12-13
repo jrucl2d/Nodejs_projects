@@ -7,6 +7,9 @@ const nunjuck = require("nunjucks");
 const dotenv = require("dotenv");
 
 dotenv.config();
+const { sequelize } = require("./models");
+
+// 라우터
 const pageRouter = require("./routes/page");
 
 const app = express();
@@ -16,6 +19,12 @@ nunjuck.configure("views", {
   express: app,
   watch: true,
 });
+sequelize
+  .sync({ force: false }) // update. db 다시 생성해야 하면 true로(create)
+  .then(() => {
+    console.log("데이터베이스 연결 성공");
+  })
+  .catch((err) => console.error("데이터베이스 에러 : " + err));
 
 app.use(morgan("dev"));
 app.use(express.static(path.join(__dirname, "public")));
