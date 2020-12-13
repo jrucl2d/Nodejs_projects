@@ -21,6 +21,7 @@ router.get("/", (req, res, next) => {
   res.render("main", {
     title: "껄껄북",
     twits,
+    user: req.user,
   });
 });
 

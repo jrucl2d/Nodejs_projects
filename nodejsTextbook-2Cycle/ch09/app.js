@@ -9,6 +9,7 @@ const passport = require("passport");
 
 dotenv.config();
 const { sequelize } = require("./models");
+const passportConfig = require("./passport");
 
 // 라우터
 const pageRouter = require("./routes/page");
@@ -27,6 +28,7 @@ sequelize
     console.log("데이터베이스 연결 성공");
   })
   .catch((err) => console.error("데이터베이스 에러 : " + err));
+passportConfig();
 
 app.use(morgan("dev"));
 app.use(express.static(path.join(__dirname, "public")));

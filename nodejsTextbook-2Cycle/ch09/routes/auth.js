@@ -8,7 +8,7 @@ const { isNotLoggedIn, isLoggedIn } = require("./middlewares");
 router.post("/join", isNotLoggedIn, async (req, res, next) => {
   const { email, nick, password } = req.body;
   try {
-    const exUser = await User.findOne({ where: { email } });
+    const exUser = await User.findOne({ where: { email: email } });
     if (exUser) {
       return res.redirect("/join?error=exist");
     }
@@ -19,9 +19,10 @@ router.post("/join", isNotLoggedIn, async (req, res, next) => {
       password: hash,
     });
     return res.redirect("/");
-  } catch (err) {
-    console.error(err);
-    next(err);
+  } catch (error) {
+    console.log(error);
+    // console.error(error);
+    return next(error);
   }
 });
 
@@ -55,4 +56,18 @@ router.get("/logout", isLoggedIn, (req, res, next) => {
   req.session.destroy();
   res.redirect("/");
 });
+
+// 카카오 로그인
+router.get("/kakao", passport.authenticate("kakao"));
+
+router.get(
+  "/kakao/callback",
+  passport.authenticate("kakao", {
+    failureRedirect: "/",
+  }),
+  (req, res, next) => {
+    res.redirect("/");
+  }
+);
+
 module.exports = router;
