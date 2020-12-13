@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{title}}</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="profile-wrap">
+        <div class="profile">
+          <!-- if 'user' is exists, show name, profile & logout buttons -->
+          {% if user and user.id %}
+          <div class="user-name">{{'Hello!' + user.nick + '!!'}}</div>
+          <div class="half">
+            <div>Followings</div>
+            <div class="count following-count">{{followingCount}}</div>
+          </div>
+          <!-- can use my-id for variable cause it is hidden but has own value -->
+          <input type="hidden" id="my-id" value="{{user.id}}" />
+          <a href="/profile" class="btn" id="my-profile">My profile</a>
+          <a href="/auth/logout" class="btn" id="logout">Log Out</a>
+          <!-- if 'user' is not exists, show login & register buttons -->
+          {% else %}
+          <form action="/auth/login" method="post" id="login-form">
+            <div class="input-group">
+              <label for="email">email</label>
+              <input type="email" id="email" name="email" required autofocus />
+            </div>
+            <div class="input-group">
+              <label for="pw">password</label>
+              <input type="password" id="password" name="password" required />
+            </div>
+            <a href="/register" id="join" class="btn">Register</a>
+            <button id="login" class="btn" type="submit">Log In</button>
+            <a href="/auth/kakao" id="kakao" class="btn">Kakao Log In</a>
+          </form>
+          {% endif %}
+        </div>
+        <footer>
+          Made by&nbsp;
+          <br />YuSeongGeun
+        </footer>
+      </div>
+      {% block content %} {% endblock %}
+    </div>
+    <!-- using axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+      window.onload = () => {
+        if (new URL(location.href).searchParams.get("loginError")) {
+          alert(new URL(location.href).searchParams.get("loginError"));
+        }
+      };
+    </script>
+    {% block script %} {% endblock %}
+  </body>
+</html>

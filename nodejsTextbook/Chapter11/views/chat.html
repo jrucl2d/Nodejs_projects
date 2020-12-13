@@ -1,0 +1,59 @@
+{% extends "layout.html" %} {% block content %}
+<h1>{{title}}</h1>
+<a href="/" id="exit-btn">방 나가기</a>
+<fieldset>
+  <legend>채팅 내용</legend>
+  <div id="chat-list"></div>
+  {% for chat in chats %} {% if chat.user === user %}
+  <div class="mine">
+    <div>{{chat.user}}</div>
+    {{ if chat.gif }}
+    <img src="/gif/{{chat.gif}}" />
+    {{ else }}
+    <div>{{chat.chat}}</div>
+    {{ endif }}
+  </div>
+  {% elif chat.user === 'system' %}
+  <div class="system">
+    <div>{{chat.chat}}</div>
+  </div>
+  {% else %}
+  <div class="other">
+    <div>{{chat.user}}</div>
+    {% if chat.gif %}
+    <img src="/gif/{{chat.gif}}" alt="" />
+    {% elif %}
+    <div>{{chat.chat}}</div>
+    {% endif %}
+  </div>
+  {% endif %} {% endfor %}
+</fieldset>
+<form action="/chat" method="post" enctype="multipart/form-data" id="chat-form">
+  <label for="gif">GIF 올리기</label>
+  <input type="file" id="gif" name="gif" accept="image/gif" />
+  <input type="text" name="chat" id="chat" />
+  <button type="submit">전송</button>
+</form>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect("http://localhost:8000/chat", {
+    path: "/socket.io",
+  });
+  socket.on("join", function (data) {
+    var div = document.createElement("div");
+    div.classList.add("system");
+    var chat = document.createElement("div");
+    div.textContent = data.chat;
+    div.appendChild(chat);
+    document.querySelector("#chat-list").appendChild(div);
+  });
+  socket.on("exit", function (data) {
+    var div = document.createElement("div");
+    div.classList.add("system");
+    var chat = document.createElement("div");
+    div.textContent = data.chat;
+    div.appendChild(chat);
+    document.querySelector("#chat-list").appendChild(div);
+  });
+</script>
+{%endblock%}

@@ -1,0 +1,8 @@
+extends layout
+
+block content
+  h1= title 
+  p Welcome to #{title}
+  ul
+    for nums, index in ['1', '2', '3', '4']
+      li= (index + 1) + '번째 숫자 :' + nums

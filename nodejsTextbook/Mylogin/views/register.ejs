@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+  </head>
+  <body>
+    <h1>this is register page</h1>
+    <form action="/user/register" method="post">
+      <label for="name">name : </label>
+      <input
+        type="text"
+        name="name"
+        id="name"
+        placeholder="input your name"
+        value="<%= typeof name !== 'undefined' ? name : ''%>"
+      />
+      <br />
+      <label for="email">email : </label>
+      <input
+        type="email"
+        name="email"
+        id="email"
+        placeholder="input your email"
+        value="<%= typeof email !== 'undefined' ? email : ''%>"
+      />
+      <br />
+
+      <label for="pw">password : </label>
+      <input
+        type="password"
+        name="pw"
+        id="pw"
+        placeholder="input your password"
+        value="<%= typeof pw !== 'undefined' ? pw : ''%>"
+      />
+      <br />
+      <label for="pw2">password confirm : </label>
+      <input
+        type="password"
+        name="pw2"
+        id="pw2"
+        placeholder="input your password confirm"
+        value="<%= typeof pw2 !== 'undefined' ? pw2 : ''%>"
+      />
+      <button type="submit" style="display: block;">Reigster</button>
+    </form>
+    <p style="display: inline-block;">you have account?</p>
+    <a href="/user/login">Login</a>
+
+    <div class="errorsShowing">
+      <%if(typeof errors != 'undefined') {%> <% errors.forEach(err => { %>
+      <p><%= err.msg%></p>
+      <%})};%>
+    </div>
+  </body>
+</html>

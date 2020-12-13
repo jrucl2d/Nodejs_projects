@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wecome</title>
+  </head>
+  <body>
+    <%if(success_msg){%>
+    <p><%= success_msg %></p>
+    <%}%>
+    <h1>this is welcome page</h1>
+    <%if(!user){%>
+    <a href="/user/register">Register</a>
+    <br />
+    <a href="/user/login">Log In</a>
+    <%}%> <%if(user){%>
+    <p>안녕하세요 <%= user.name%>님!</p>
+    <a href="/user/logout">Log Out</a>
+    <%}%>
+  </body>
+</html>
