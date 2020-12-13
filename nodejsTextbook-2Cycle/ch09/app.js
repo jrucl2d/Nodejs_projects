@@ -5,12 +5,14 @@ const path = require("path");
 const session = require("express-session");
 const nunjuck = require("nunjucks");
 const dotenv = require("dotenv");
+const passport = require("passport");
 
 dotenv.config();
 const { sequelize } = require("./models");
 
 // 라우터
 const pageRouter = require("./routes/page");
+const authRouter = require("./routes/auth");
 
 const app = express();
 app.set("port", process.env.PORT || "8001");
@@ -43,7 +45,12 @@ app.use(
   })
 );
 
+// 라우팅 하기 전에 passport가 설정되어야 함, 세션을 사용하므로 세션 아래에 위치해야 함
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use("/", pageRouter);
+app.use("/auth", authRouter);
 
 app.use((req, res, next) => {
   const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
