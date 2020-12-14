@@ -145,7 +145,8 @@ textarea {
   font-weight: bold;
   margin-right: 10px;
 }
-.twit-follow {
+.twit-follow,
+.twit-unfollow {
   padding: 1px 5px;
   background: #fff;
   border: 1px solid silver;
@@ -153,6 +154,16 @@ textarea {
   color: crimson;
   font-size: 12px;
   cursor: pointer;
+}
+.twit-liked {
+  background-color: rgb(42, 132, 250);
+  color: white;
+}
+.likers-list {
+  font-size: 12px;
+}
+.twit-unfollow {
+  color: rgb(42, 132, 250);
 }
 .twit-img {
   text-align: center;

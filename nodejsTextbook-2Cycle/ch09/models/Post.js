@@ -31,5 +31,6 @@ module.exports = class Post extends (
   static associate(db) {
     db.Post.belongsTo(db.User);
     db.Post.belongsToMany(db.Hashtag, { through: "PostHashtag" });
+    db.Post.belongsToMany(db.User, { through: "PostLike", as: "Liker" });
   }
 };

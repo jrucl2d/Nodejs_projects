@@ -45,16 +45,17 @@ module.exports = class User extends (
   static associate(db) {
     db.User.hasMany(db.Post);
     db.User.belongsToMany(db.User, {
-      // 나를 팔로잉 하는 사람을 가져오려면 내 아이디(followingId)로 검색해야 함
+      // 현재 유저가 다른 유저에 follower로서 그 유저의 정보를 followingId에 저장함
       foreignKey: "followingId",
       as: "Followers",
       through: "Follow",
     });
     db.User.belongsToMany(db.User, {
-      // 내가 팔로잉 하는 사람을 가져오려면 내 아이디(followerId)로 검색해야 함
+      // 현재 유저가 다른 유저를 following하고 있는 사람으로서 그 유저 정보를 followerId에 저장함
       foreignKey: "followerId",
       as: "Followings",
       through: "Follow",
     });
+    db.User.belongsToMany(db.Post, { through: "PostLike", as: "Liker" });
   }
 };

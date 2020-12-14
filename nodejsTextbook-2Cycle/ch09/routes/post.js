@@ -61,4 +61,45 @@ router.post("/", isLoggedIn, upload.none(), async (req, res, next) => {
   }
 });
 
+router.delete("/:id/delete", async (req, res, next) => {
+  try {
+    // 실제 사용자가 삭제하는거 맞는지 이중 검사
+    await Post.destroy({ where: { id: req.params.id, userId: req.user.id } });
+    res.send("successfully deleted");
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+router.patch("/:id/like", async (req, res, next) => {
+  try {
+    console.log(
+      `${req.user.id} 사용자가 ${req.params.id}번 게시물을 좋아합니다`
+    );
+    const post = await Post.findOne({
+      where: { id: req.params.id },
+    });
+    post.addLiker(req.user.id);
+    res.send("like button clicked");
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+router.patch("/:id/unlike", async (req, res, next) => {
+  try {
+    console.log(
+      `${req.user.id} 사용자가 ${req.params.id}번 게시물을 좋아요 취소합니다`
+    );
+    const post = await Post.findOne({
+      where: { id: req.params.id },
+    });
+    post.removeLiker(req.user.id);
+    res.send("unlike button clicked");
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
 module.exports = router;
