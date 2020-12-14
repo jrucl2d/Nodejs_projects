@@ -1,34 +1,20 @@
 const express = require("express");
 const path = require("path");
-const cookieParser = require("cookie-parser");
-const session = require("express-session");
-const passport = require("passport");
 const morgan = require("morgan");
 const nunjucks = require("nunjucks");
+const app = express();
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
 const dotenv = require("dotenv");
 
 dotenv.config();
-const authRouter = require("./routes/auth");
-const indexRouter = require("./routes");
-const v1 = require("./routes/v1");
-const { sequelize } = require("./models");
-const passportConfig = require("./passport");
 
-const app = express();
-passportConfig();
-app.set("port", process.env.PORT || 8002);
+app.set("port", process.env.PORT || 4000);
 app.set("view engine", "html");
 nunjucks.configure("views", {
   express: app,
   watch: true,
 });
-
-sequelize
-  .sync({ force: false })
-  .then(() => {
-    console.log("데이터베이스 연결 성공");
-  })
-  .catch((err) => console.log("데이터베이스 연결 에러 " + err));
 
 app.use(morgan("dev"));
 app.use(express.static(path.join(__dirname, "public")));
@@ -46,15 +32,11 @@ app.use(
     },
   })
 );
-app.use(passport.initialize());
-app.use(passport.session());
 
-app.use("/auth", authRouter);
-app.use("/", indexRouter);
-app.use("/v1", v1);
+app.use("/", require("./routes/"));
 
 app.use((req, res, next) => {
-  const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
+  const error = new Error(`${req.method} ${req.url} 라우터가 없습니다`);
   error.status = 404;
   next(error);
 });
@@ -67,5 +49,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(app.get("port"), () => {
-  console.log(`${app.get("port")}번 포트에서 서버 실행중`);
+  console.log(`${app.get("port")}번 포트에서 서버 작동중`);
 });
