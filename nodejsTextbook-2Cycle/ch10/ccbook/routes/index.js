@@ -53,6 +53,10 @@ router.get("/search/:hashtag", async (req, res, next) => {
   }
 });
 
+router.get("/", (req, res, next) => {
+  res.render("main", { key: process.env.FRONT_SECRET });
+});
+
 // router.get("/test", async (req, res, next) => {
 //   try {
 //     // 세션에 토큰이 없으면 토큰 발급 시도
