@@ -1,7 +1,8 @@
 const router = require("express").Router();
 const axios = require("axios");
 
-const URL = "http://localhost:8002/v1";
+// const URL = "http://localhost:8002/v1";
+const URL = "http://localhost:8002/v2";
 axios.defaults.headers.origin = "http://localhost:4000";
 
 // 토큰 만료시 재발급받는 기능까지 추가되어 있는 미들웨어

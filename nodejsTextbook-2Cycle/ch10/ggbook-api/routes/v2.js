@@ -5,11 +5,9 @@ const User = require("../models/User");
 const Post = require("../models/Post");
 const Hashtag = require("../models/Hashtag");
 
-const { verifyToken, deprecated } = require("./middlewares");
+const { verifyToken, apiLimiter } = require("./middlewares");
 
-router.use(deprecated);
-
-router.post("/token", async (req, res, next) => {
+router.post("/token", apiLimiter, async (req, res, next) => {
   const { serverSecret } = req.body;
   try {
     const domain = await Domain.findOne({
@@ -50,12 +48,12 @@ router.post("/token", async (req, res, next) => {
   }
 });
 
-router.get("/test", verifyToken, (req, res) => {
+router.get("/test", verifyToken, apiLimiter, (req, res) => {
   res.json(req.decoded);
 });
 
 // 자신의 정보를 가져오는 라우터
-router.get("/posts/my", verifyToken, async (req, res, next) => {
+router.get("/posts/my", verifyToken, apiLimiter, async (req, res, next) => {
   try {
     const posts = await Post.findAll({ where: { userId: req.decoded.id } });
     res.json({ code: 200, payload: posts });
@@ -69,26 +67,31 @@ router.get("/posts/my", verifyToken, async (req, res, next) => {
 });
 
 // 해시태그로 게시글을 검색하는 라우터
-router.get("/posts/hashtag/:title", verifyToken, async (req, res, next) => {
-  try {
-    const hashtag = await Hashtag.findOne({
-      where: { title: req.params.title },
-    });
-    if (!hashtag) {
-      return res.status(404).json({
-        code: 404,
-        message: "검색 결과가 없습니다",
+router.get(
+  "/posts/hashtag/:title",
+  verifyToken,
+  apiLimiter,
+  async (req, res, next) => {
+    try {
+      const hashtag = await Hashtag.findOne({
+        where: { title: req.params.title },
+      });
+      if (!hashtag) {
+        return res.status(404).json({
+          code: 404,
+          message: "검색 결과가 없습니다",
+        });
+      }
+      const posts = await hashtag.getPosts();
+      return res.json({ code: 200, payload: posts });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        code: 500,
+        message: "서버 에러",
       });
     }
-    const posts = await hashtag.getPosts();
-    return res.json({ code: 200, payload: posts });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({
-      code: 500,
-      message: "서버 에러",
-    });
   }
-});
+);
 
 module.exports = router;
