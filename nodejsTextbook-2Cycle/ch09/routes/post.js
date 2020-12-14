@@ -4,6 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const { isLoggedIn } = require("./middlewares");
 const Post = require("../models/Post");
+const Hashtag = require("../models/Hashtag");
 
 try {
   fs.readdirSync("uploads");
@@ -34,11 +35,25 @@ router.post("/img", isLoggedIn, upload.single("img"), (req, res, next) => {
 // 게시글 업로드
 router.post("/", isLoggedIn, upload.none(), async (req, res, next) => {
   try {
-    await Post.create({
+    const post = await Post.create({
       content: req.body.content,
       img: req.body.url,
       UserId: req.user.id,
     });
+    const hashtags = [...new Set(req.body.content.match(/#[^\s#]*/g))];
+    if (hashtags) {
+      const result = await Promise.all(
+        hashtags.map((tag) => {
+          // 트랜잭션으로 이루어지는 메소드 findOrCreate
+          // 있으면 update, 없으면 insert하는 upsert라는 것도 있다.
+          return Hashtag.findOrCreate({
+            where: { title: tag.slice(1).toLowerCase() },
+          });
+        })
+      );
+      // result 결과로 [['결과 해시태그', true], ['결과 해시태그', true]] 이런 식으로 나옴. true면 없어서 create했다. false면 찾았다.
+      await post.addHashtag(result.map((v) => v[0])); // create 결과물인 post에 addHashtags로 넣을 수 있다.
+    }
     res.redirect("/");
   } catch (err) {
     console.error(err);
