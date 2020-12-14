@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { V4: uuid } = require("uuid");
+const { v4: uuid } = require("uuid");
 const Domain = require("../models/Domain");
 const User = require("../models/User");
 const { isLoggedIn } = require("./middlewares");
