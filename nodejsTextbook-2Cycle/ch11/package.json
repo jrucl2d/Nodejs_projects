@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node app",
     "dev": "nodemon app",
-    "test": "jest"
+    "test": "jest",
+    "coverage" : "jest --coverage"
   },
   "author": "",
   "license": "ISC",
