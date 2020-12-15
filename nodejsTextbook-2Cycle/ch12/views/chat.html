@@ -45,6 +45,7 @@
       path: '/socket.io',
     });
     socket.on('join', function (data) {
+      console.log(data);
       const div = document.createElement('div');
       div.classList.add('system');
       const chat = document.createElement('div');

@@ -15,7 +15,7 @@ const chatSchema = new Schema({
     required: true,
   },
   chat: String,
-  pic: String,
+  gif: String,
   createdAt: {
     type: Date,
     default: Date.now,
