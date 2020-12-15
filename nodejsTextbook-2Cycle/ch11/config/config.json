@@ -9,7 +9,7 @@
   "test": {
     "username": "test",
     "password": "test1234",
-    "database": "ggbook",
+    "database": "ggbook_test",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
