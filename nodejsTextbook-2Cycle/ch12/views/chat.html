@@ -35,7 +35,7 @@
   </fieldset>
   <form action="/chat" id="chat-form" method="post" enctype="multipart/form-data">
     <label for="gif">GIF 올리기</label>
-    <input type="file" id="gif" name="gif" accept="image/gif">
+    <input type="file" id="gif" name="gif" >
     <input type="text" id="chat" name="chat">
     <button type="submit">전송</button>
   </form>
@@ -96,6 +96,18 @@
             console.error(err);
           });
       }
+    });
+    document.querySelector('#gif').addEventListener('change', function (e) {
+      console.log(e.target.files);
+      const formData = new FormData();
+      formData.append('gif', e.target.files[0]);
+      axios.post('/room/{{room._id}}/gif', formData)
+        .then(() => {
+          e.target.file = null;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     });
   </script>
 {% endblock %}

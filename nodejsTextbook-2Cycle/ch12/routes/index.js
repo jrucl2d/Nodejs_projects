@@ -1,6 +1,9 @@
 const router = require("express").Router();
 const Room = require("../schemas/room");
 const Chat = require("../schemas/chat");
+const fs = require("fs");
+const multer = require("multer");
+const path = require("path");
 
 router.get("/", async (req, res, next) => {
   try {
@@ -72,6 +75,41 @@ router.post("/room/:id/chat", async (req, res, next) => {
       chat: req.body.chat,
     });
     // 전체 중에서 chat 네임스페이스, 그 중에서도 방 안에만 전송됨
+    req.app.get("io").of("/chat").to(req.params.id).emit("chat", chat);
+    res.send("ok");
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+try {
+  fs.readdirSync("uploads");
+} catch (err) {
+  console.error("uploads 폴더가 없으므로 생성합니다.");
+  fs.mkdirSync("uploads");
+}
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination(req, file, done) {
+      done(null, "uploads/");
+    },
+    filename(req, file, done) {
+      const ext = path.extname(file.originalname);
+      done(null, path.basename(file.originalname, ext) + Date.now() + ext);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+router.post("/room/:id/gif", upload.single("gif"), async (req, res, next) => {
+  try {
+    const chat = await Chat.create({
+      room: req.params.id,
+      user: req.session.color,
+      gif: req.file.filename,
+    });
     req.app.get("io").of("/chat").to(req.params.id).emit("chat", chat);
     res.send("ok");
   } catch (err) {
