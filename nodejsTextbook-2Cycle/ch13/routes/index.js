@@ -2,11 +2,13 @@ const router = require("express").Router();
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const schedule = require("node-schedule");
 
 const { isNotLoggedIn, isLoggedIn } = require("./middlewares");
 const Good = require("../models/Good");
 const Auction = require("../models/Auction");
 const User = require("../models/User");
+const { sequelize } = require("../models/index");
 
 router.use((req, res, next) => {
   res.locals.user = req.user;
@@ -61,12 +63,45 @@ router.post(
   async (req, res, next) => {
     try {
       const { name, price } = req.body;
-      await Good.create({
+      const good = await Good.create({
         OwnerId: req.user.id,
         name,
         img: req.file.filename,
         price,
       });
+      const end = new Date();
+      end.setDate(end.getDate() + 1); // 24시간 뒤로 설정
+      // 스케줄링 -> 정해진 시간이 끝나면 콜백 함수가 호출됨
+      schedule.scheduleJob(end, async () => {
+        const t = await sequelize.transaction(); // 같은 t이면 같은 트랜잭션
+
+        try {
+          const success = await Auction.findOne({
+            where: { GoodId: good.id },
+            order: [["bid", "DESC"]], // 가장 마지막에 입찰한 사람
+            transaction: t,
+          });
+          // await Good.setSold(success.UserId);
+          await Good.update(
+            { SoldId: success.UserId },
+            { where: { id: good.id }, transaction: t }
+          );
+
+          await User.update(
+            {
+              money: sequelize.literal(`money - ${success.bid}`),
+            },
+            {
+              where: { id: success.UserId },
+              transaction: t,
+            }
+          );
+          await t.commit();
+        } catch (err) {
+          await t.rollback();
+        }
+      });
+
       res.redirect("/");
     } catch (error) {
       console.error(error);

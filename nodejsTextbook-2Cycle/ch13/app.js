@@ -8,6 +8,7 @@ const nunjucks = require("nunjucks");
 const dotenv = require("dotenv");
 const sse = require("./sse");
 const webSocket = require("./socket");
+const checkAuction = require("./checkAuction");
 
 dotenv.config();
 const indexRouter = require("./routes/index");
@@ -17,6 +18,7 @@ const passportConfig = require("./passport");
 
 const app = express();
 passportConfig();
+checkAuction();
 app.set("port", process.env.PORT || 8010);
 app.set("view engine", "html");
 nunjucks.configure("views", {
