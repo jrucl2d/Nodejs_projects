@@ -66,11 +66,12 @@ router.post(
       const good = await Good.create({
         OwnerId: req.user.id,
         name,
+        end: req.body.end,
         img: req.file.filename,
         price,
       });
       const end = new Date();
-      end.setDate(end.getDate() + 1); // 24시간 뒤로 설정
+      end.setDate(end.getDate() + good.end); // 설정한 시간 뒤에 끝
       // 스케줄링 -> 정해진 시간이 끝나면 콜백 함수가 호출됨
       schedule.scheduleJob(end, async () => {
         const t = await sequelize.transaction(); // 같은 t이면 같은 트랜잭션
@@ -81,24 +82,34 @@ router.post(
             order: [["bid", "DESC"]], // 가장 마지막에 입찰한 사람
             transaction: t,
           });
-          // await Good.setSold(success.UserId);
-          await Good.update(
-            { SoldId: success.UserId },
-            { where: { id: good.id }, transaction: t }
-          );
+          // 입찰자가 존재하면
+          if (success) {
+            // await Good.setSold(success.UserId); // 아래와 같음
+            await Good.update(
+              { SoldId: success.UserId },
+              { where: { id: good.id }, transaction: t }
+            );
 
-          await User.update(
-            {
-              money: sequelize.literal(`money - ${success.bid}`),
-            },
-            {
-              where: { id: success.UserId },
-              transaction: t,
-            }
-          );
+            await User.update(
+              {
+                money: sequelize.literal(`money - ${success.bid}`),
+              },
+              {
+                where: { id: success.UserId },
+                transaction: t,
+              }
+            );
+            // 입찰자가 존재하지 않으면
+          } else {
+            await Good.update(
+              { soldId: good.ownerId }, // 주인을 소유자로 바꿔줌
+              { where: { id: good.id }, transaction: t }
+            );
+          }
           await t.commit();
         } catch (err) {
           await t.rollback();
+          console.error(err);
         }
       });
 
@@ -121,6 +132,7 @@ router.get("/good/:id", isLoggedIn, async (req, res, next) => {
       Auction.findAll({
         where: { GoodId: req.params.id },
         include: { model: User },
+        order: [["bid", "ASC"]],
       }),
     ]);
     res.render("auction", {
@@ -144,12 +156,16 @@ router.post("/good/:id/bid", isLoggedIn, async (req, res, next) => {
       include: { model: Auction },
       order: [[{ model: Auction }, "bid", "DESC"]],
     });
-    // 입찰가 확인
     if (good.price >= bid) {
       return res.status(403).send("시작 가격보다 높게 입찰해야 합니다.");
     }
-    // 경매 시작후 24시간 이내인지 확인
-    if (new Date(good.createdAt).valueOf() + 24 * 60 * 60 * 1000 < new Date()) {
+    if (good.OwnerId === req.user.id) {
+      return res.status(403).send("소유자는 입찰할 수 없습니다");
+    }
+    if (
+      new Date(good.createdAt).valueOf() + good.end * 60 * 60 * 1000 <
+      new Date()
+    ) {
       return res.status(403).send("경매가 이미 종료되었습니다");
     }
     if (good.Auctions[0] && good.Auctions[0].bid >= bid) {

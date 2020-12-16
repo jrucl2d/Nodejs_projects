@@ -14,6 +14,11 @@ module.exports = class Good extends (
           type: Sequelize.STRING(200),
           allowNull: true,
         },
+        end: {
+          type: Sequelize.INTEGER,
+          allowNull: false,
+          defaultValue: 24,
+        },
         price: {
           type: Sequelize.INTEGER,
           allowNull: false,

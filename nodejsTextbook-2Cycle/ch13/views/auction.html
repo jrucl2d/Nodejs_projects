@@ -1,26 +1,43 @@
-{% extends 'layout.html' %}
-
-{% block good %}
-  <h2>{{good.name}}</h2>
-  <div>등록자: {{good.Owner.nick}}</div>
-  <div>시작가: {{good.price}}원</div>
-  <strong id="time" data-start="{{good.createdAt}}"></strong>
-  <img id="good-img" src="/img/{{good.img}}">
-{% endblock %}
-
-{% block content %}
-  <div class="timeline">
-    <div id="bid">
-      {% for bid in auction %}
-        <div>
-          <span>{{bid.User.nick}}님: </span>
-          <strong>{{bid.bid}}원에 입찰하셨습니다.</strong>
-          {% if bid.msg %}
-            <span>({{bid.msg}})</span>
-          {% endif %}
-        </div>
-      {% endfor %}
+{% extends 'layout.html' %} {% block good %}
+<h2>{{good.name}}</h2>
+<div>등록자: {{good.Owner.nick}}</div>
+<div>시작가: {{good.price}}원</div>
+<strong
+  id="time"
+  data-start="{{good.createdAt}}"
+  data-end="{{good.end}}"
+></strong>
+<img id="good-img" src="/img/{{good.img}}" />
+{% endblock %} {% block content %}
+<div class="timeline">
+  <div id="bid">
+    {% for bid in auction %}
+    <div>
+      <span>{{bid.User.nick}}님: </span>
+      <strong>{{bid.bid}}원에 입찰하셨습니다.</strong>
+      {% if bid.msg %}
+      <span>({{bid.msg}})</span>
+      {% endif %}
     </div>
+    {% endfor %}
+  </div>
+  <form id="bid-form">
+    <input
+      type="number"
+      name="bid"
+      placeholder="입찰가"
+      required
+      min="{{good.price}}"
+    />
+    <input
+      type="msg"
+      name="msg"
+      placeholder="메시지(선택사항)"
+      maxlength="100"
+    />
+    <button class="btn" type="submit">입찰</button>
+  </form>
+</div>
     <form id="bid-form">
       <input type="number" name="bid" placeholder="입찰가" required min="{{good.price}}">
       <input type="msg" name="msg" placeholder="메시지(선택사항)" maxlength="100">
@@ -49,21 +66,22 @@
         });
     });
     const es = new EventSource("/sse");
-    const time = document.querySelector('#time');
-    es.onmessage = (e) => {
-      const end = new Date(time.dataset.start); // 경매 시작 시간
-      const server = new Date(parseInt(e.data, 10));
-      end.setDate(end.getDate() + 1); // 경매 종료 시간
-      if (server >= end) { // 경매가 종료되었으면
-        return time.textContent = '00:00:00';
-      } else {
-        const t = end - server;
-        const seconds = ('0' + Math.floor((t / 1000) % 60)).slice(-2);
-        const minutes = ('0' + Math.floor((t / 1000 / 60) % 60)).slice(-2);
-        const hours = ('0' + Math.floor((t / (1000 * 60 * 60)) % 24)).slice(-2);
-        return time.textContent = hours + ':' + minutes + ':' + seconds;
-      }
-    };
+  const time = document.querySelector("#time");
+  es.onmessage = (e) => {
+    const end = new Date(time.dataset.start); // 경매 시작 시간
+    const server = new Date(parseInt(e.data, 10));
+    end.setHours(end.getHours() + parseInt(time.dataset.end)); // 경매 종료 시간
+    if (server >= end) {
+      // 경매가 종료되었으면
+      return (time.textContent = "00:00:00");
+    } else {
+      const t = end - server;
+      const seconds = ("0" + Math.floor((t / 1000) % 60)).slice(-2);
+      const minutes = ("0" + Math.floor((t / 1000 / 60) % 60)).slice(-2);
+      const hours = ("0" + Math.floor((t / (1000 * 60 * 60)) % 24)).slice(-2);
+      return (time.textContent = hours + ":" + minutes + ":" + seconds);
+    }
+  };
     const socket = io.connect('http://localhost:8010', {
       path: '/socket.io'
     });
