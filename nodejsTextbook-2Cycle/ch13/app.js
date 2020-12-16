@@ -6,6 +6,8 @@ const session = require("express-session");
 const passport = require("passport");
 const nunjucks = require("nunjucks");
 const dotenv = require("dotenv");
+const sse = require("./sse");
+const webSocket = require("./socket");
 
 dotenv.config();
 const indexRouter = require("./routes/index");
@@ -66,6 +68,9 @@ app.use((err, req, res, next) => {
   res.render("error");
 });
 
-app.listen(app.get("port"), () => {
+const server = app.listen(app.get("port"), () => {
   console.log(app.get("port"), "번 포트에서 대기중");
 });
+
+webSocket(server, app);
+sse(server);
