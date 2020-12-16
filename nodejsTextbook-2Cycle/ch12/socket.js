@@ -36,11 +36,30 @@ module.exports = (server, app, sessionMiddleWare) => {
       [referer.split("/").length - 1].replace(/\?.+/, ""); // 같은 네임스페이스 안에서도 방이 있다. 방 안에서만 데이터 주고받음.
     socket.join(roomId);
     // to()로 특정 방에만 데이터 전달
-    socket.to(roomId).emit("join", {
-      user: "system",
-      chat: `${app.get("username")}님이 입장하셨습니다.`,
-      //   members: socket.adapter.rooms[roomId].length,
-    });
+    // socket.to(roomId).emit("join", {
+    //   user: "system",
+    //   chat: `${app.get("username")}님이 입장하셨습니다.`,
+    //   //   members: socket.adapter.rooms[roomId].length,
+    // });
+
+    // 시스템 메시지 socket에서 보내지 않고 라우터 거쳐서 보냄
+
+    const signedCookie = cookie.sign(
+      req.headers.cookie.split("=")[1],
+      process.env.COOKIE_SECRET
+    );
+
+    axios.post(
+      `http://localhost:8005/room/${roomId}/sys`,
+      {
+        type: "join",
+      },
+      {
+        headers: {
+          Cookie: `connect.sid=s%3A${signedCookie}`,
+        },
+      }
+    );
 
     socket.on("disconnect", () => {
       console.log("chat 네임스페이스 접속 해제");
@@ -50,15 +69,11 @@ module.exports = (server, app, sessionMiddleWare) => {
 
       if (userCount === 0) {
         // // 유저가 0명이면 방 삭제
-        const signedCookie = cookie.sign(
-          req.headers.cookie.split("=")[1],
-          process.env.COOKIE_SECRET
-        );
-        const connectSID = `${signedCookie}`;
+
         axios
           .delete(`http://localhost:8005/room/${roomId}`, {
             headers: {
-              Cookie: `connect.sid=s%3A${connectSID}`,
+              Cookie: `connect.sid=s%3A${signedCookie}`,
             },
           })
           .then(() => {
@@ -68,10 +83,23 @@ module.exports = (server, app, sessionMiddleWare) => {
             console.error(error);
           });
       } else {
-        socket.to(roomId).emit("exit", {
-          user: "system",
-          chat: `${app.get("username")}님이 퇴장하셨습니다.`,
-        });
+        // socket.to(roomId).emit("exit", {
+        //   user: "system",
+        //   chat: `${app.get("username")}님이 퇴장하셨습니다.`,
+        // });
+
+        // 시스템 메시지 라우터 거쳐서 보냄
+        axios.post(
+          `http://localhost:8005/room/${roomId}/sys`,
+          {
+            type: "exit",
+          },
+          {
+            headers: {
+              Cookie: `connect.sid=s%3A${signedCookie}`,
+            },
+          }
+        );
       }
     });
   });

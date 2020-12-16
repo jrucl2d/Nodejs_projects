@@ -46,11 +46,11 @@ router.get("/room/:id", async (req, res, next) => {
     if (room.password && room.password !== req.query.password) {
       return res.redirect("/?error=비밀번호가 틀렸습니다.");
     }
-    const { rooms } = io.of("/chat").adapter; // adapter.rooms 안에 방들 목록 있음. rooms[룸 아이디] 안에 인원들 있음
+    const { rooms } = io.of("/chat").adapter; // adapter.rooms 안에 방들 목록 있음. Map이므로 rooms.get(방 아이디)으로 인원들 가져올 수 있음
     if (
       rooms &&
       rooms.get(req.params.id) &&
-      room.max <= rooms.get(req.params.id).size
+      room.max <= rooms.get(req.params.id).size // adapter.rooms.get(아이디)의 인원들은 Set이므로 .size로 크기 가져옴
     ) {
       return res.redirect("/?error=허용 인원이 초과하였습니다.");
     }
@@ -60,6 +60,8 @@ router.get("/room/:id", async (req, res, next) => {
       title: room.title,
       chats,
       user: req.session.color,
+      members:
+        (rooms && rooms[req.params.id] && rooms[req.params.id].length + 1) || 1,
     });
   } catch (error) {
     console.error(error);
@@ -116,6 +118,29 @@ router.post("/room/:id/gif", upload.single("gif"), async (req, res, next) => {
     console.error(err);
     next(err);
   }
+});
+
+router.post("/room/:id/sys", async (req, res, next) => {
+  const chat =
+    req.body.type === "join"
+      ? `${req.session.color}님이 입장하셨습니다.`
+      : `${req.session.color}님이 퇴장하셨습니다.`;
+  const sysChat = await Chat.create({
+    room: req.params.id,
+    chat,
+    user: "system",
+  });
+  // socket에서 바로 emit 하지 않고 라우터에서 db 저장 후에 emit
+  req.app
+    .get("io")
+    .of("/chat")
+    .to(req.params.id)
+    .emit(req.body.type, {
+      user: "system",
+      chat,
+      members: req.app.get("io").of("/chat").adapter.rooms.get(req.params.id)
+        .size,
+    });
 });
 
 router.delete("/room/:id", async (req, res, next) => {

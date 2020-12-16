@@ -15,16 +15,6 @@ connect();
 
 const indexRouter = require("./routes");
 
-const sessionMiddleWare = session({
-  resave: false,
-  saveUninitialized: false,
-  secret: process.env.COOKIE_SECRET,
-  cookie: {
-    httpOnly: true,
-    secure: false,
-  },
-});
-
 app.set("port", process.env.PORT || 8005);
 app.set("view engine", "html");
 nunjucks.configure("views", {
@@ -38,6 +28,16 @@ app.use("/gif", express.static(path.join(__dirname, "uploads")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
+
+const sessionMiddleWare = session({
+  resave: false,
+  saveUninitialized: false,
+  secret: process.env.COOKIE_SECRET,
+  cookie: {
+    httpOnly: true,
+    secure: false,
+  },
+});
 app.use(sessionMiddleWare);
 
 app.use((req, res, next) => {
