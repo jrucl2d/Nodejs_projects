@@ -46,20 +46,37 @@ router.get("/room/:id", async (req, res, next) => {
     const { rooms } = io.of("/chat").adapter; // adapter.rooms 안에 방들 목록 있음. rooms[룸 아이디] 안에 인원들 있음
     if (
       rooms &&
-      rooms[req.params.id] &&
-      room.max <= rooms[req.params.id].length
+      rooms.get(req.params.id) &&
+      room.max <= rooms.get(req.params.id).size
     ) {
       return res.redirect("/?error=허용 인원이 초과하였습니다.");
     }
+    const chats = await Chat.find({ room: room._id }).sort("createdAt");
     return res.render("chat", {
       room,
       title: room.title,
-      chats: [],
+      chats,
       user: req.session.color,
     });
   } catch (error) {
     console.error(error);
     return next(error);
+  }
+});
+
+router.post("/room/:id/chat", async (req, res, next) => {
+  try {
+    const chat = await Chat.create({
+      room: req.params.id,
+      user: req.session.color,
+      chat: req.body.chat,
+    });
+    // 전체 중에서 chat 네임스페이스, 그 중에서도 방 안에만 전송됨
+    req.app.get("io").of("/chat").to(req.params.id).emit("chat", chat);
+    res.send("ok");
+  } catch (err) {
+    console.error(err);
+    next(err);
   }
 });
 
