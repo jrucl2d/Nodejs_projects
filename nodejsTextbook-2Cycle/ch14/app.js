@@ -8,8 +8,16 @@ const dotenv = require("dotenv");
 const passport = require("passport");
 const helmet = require("helmet");
 const hpp = require("hpp");
+const logger = require("./logger");
+const redis = require("redis");
+const RedisStore = require("connect-redis")(session);
 
 dotenv.config();
+const redisClient = redis.createClient({
+  url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
+  password: process.env.REDIS_PASSWORD,
+});
+
 const { sequelize } = require("./models");
 const passportConfig = require("./passport");
 
@@ -58,6 +66,7 @@ const sessionOption = {
     httpOnly: true,
     secure: false,
   },
+  store: new RedisStore({ client: redisClient }),
 };
 if (process.env.NODE_ENV === "production") {
   sessionOption.proxy = true; // nginx 사용하거나 할 때(true로 해놓는게 좋음)
@@ -78,6 +87,7 @@ app.use("/user", userRouter);
 app.use((req, res, next) => {
   const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
   error.status = 404;
+  logger.error(error.message);
   next(error);
 });
 
@@ -88,6 +98,4 @@ app.use((err, req, res, next) => {
   res.render("error");
 });
 
-app.listen(app.get("port"), () => {
-  console.log(`${app.get("port")}번 포트에서 서버 실행 중`);
-});
+module.exports = app;

@@ -4,8 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "NODE_ENV=production PORT=80 node server",
-    "dev": "nodemon app"
+    "start": "cross-env NODE_ENV=production PORT=8000 pm2 start server.js -i -1",
+    "dev": "nodemon server"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "bcrypt": "^5.0.0",
+    "connect-redis": "^5.0.0",
     "cookie-parser": "^1.4.5",
     "cross-env": "^7.0.3",
     "csurf": "^1.11.0",
@@ -29,8 +30,11 @@
     "passport": "^0.4.1",
     "passport-kakao": "^1.0.0",
     "passport-local": "^1.0.0",
+    "pm2": "^4.5.1",
+    "redis": "^3.0.2",
     "sanitize-html": "^2.3.0",
     "sequelize": "^6.3.5",
-    "sequelize-cli": "^6.2.0"
+    "sequelize-cli": "^6.2.0",
+    "winston": "^3.3.3"
   }
 }
