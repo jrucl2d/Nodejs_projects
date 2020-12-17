@@ -21,6 +21,7 @@
         />
         <input id="img-url" type="hidden" name="url" />
       </div>
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
       <div>
         <label id="img-label" for="img">사진 업로드</label>
         <input id="img" type="file" accept="image/*" />
@@ -32,6 +33,7 @@
   <div class="twits">
     <form id="hashtag-form" action="/hashtag">
       <input type="text" name="hashtag" placeholder="태그 검색" />
+      <input type="hidden" name="_csrf" value="{{csrfToken}}">
       <button class="btn">검색</button>
     </form>
     {% for twit in twits %}

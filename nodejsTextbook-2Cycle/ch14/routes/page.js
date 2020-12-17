@@ -1,6 +1,8 @@
 const User = require("../models/User");
 const Post = require("../models/Post");
 const { Hashtag } = require("../models");
+const csrf = require("csurf");
+const csrfProtection = csrf({ cookie: true });
 
 const router = require("express").Router();
 
@@ -18,11 +20,11 @@ router.get("/profile", (req, res, next) => {
   res.render("profile", { title: "프로필" });
 });
 
-router.get("/join", (req, res, next) => {
-  res.render("join", { title: "회원가입" });
+router.get("/join", csrfProtection, (req, res, next) => {
+  res.render("join", { title: "회원가입", csrfToken: req.csrfToken() });
 });
 
-router.get("/", async (req, res, next) => {
+router.get("/", csrfProtection, async (req, res, next) => {
   try {
     const posts = await Post.findAll({
       include: [
@@ -56,6 +58,7 @@ router.get("/", async (req, res, next) => {
       title: "NodeBird",
       twits: posts,
       isLiker,
+      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     console.error(err);
@@ -64,7 +67,7 @@ router.get("/", async (req, res, next) => {
 });
 
 // 해시태그 검색. GET /hashtag?hashtag=뭐뭐
-router.get("/hashtag", async (req, res, next) => {
+router.get("/hashtag", csrfProtection, async (req, res, next) => {
   const query = decodeURIComponent(req.query.hashtag);
   if (!query) {
     return res.redirect("/");
@@ -103,6 +106,7 @@ router.get("/hashtag", async (req, res, next) => {
       title: `${query} 검색 결과` || "껄껄북",
       twits: posts,
       isLiker,
+      csrfToken: req.csrfToken(),
     });
   } catch (err) {
     console.error(err);

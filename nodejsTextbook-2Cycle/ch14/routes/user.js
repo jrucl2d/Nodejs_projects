@@ -1,10 +1,14 @@
 const User = require("../models/User");
 const { isLoggedIn } = require("./middlewares");
+const sanitizeHtml = require("sanitize-html");
 
 const router = require("express").Router();
 
 router.patch("/newNick", isLoggedIn, async (req, res, next) => {
-  await User.update({ nick: req.body.newNick }, { where: { id: req.user.id } });
+  await User.update(
+    { nick: sanitizeHtml(req.body.newNick) },
+    { where: { id: req.user.id } }
+  );
   res.send("success");
 });
 

@@ -4,9 +4,11 @@ const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const sanitizeHtml = require("sanitize-html");
 const { isNotLoggedIn, isLoggedIn } = require("./middlewares");
+const csrf = require("csurf");
+const csrfProtection = csrf({ cookie: true });
 
 // 회원가입 라우터
-router.post("/join", isNotLoggedIn, async (req, res, next) => {
+router.post("/join", isNotLoggedIn, csrfProtection, async (req, res, next) => {
   const { email, nick, password } = req.body;
   try {
     const exUser = await User.findOne({ where: { email: email } });
