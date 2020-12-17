@@ -2,6 +2,7 @@ const router = require("express").Router();
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const sanitizeHtml = require("sanitize-html");
 const { isLoggedIn } = require("./middlewares");
 const Post = require("../models/Post");
 const Hashtag = require("../models/Hashtag");
@@ -36,11 +37,13 @@ router.post("/img", isLoggedIn, upload.single("img"), (req, res, next) => {
 router.post("/", isLoggedIn, upload.none(), async (req, res, next) => {
   try {
     const post = await Post.create({
-      content: req.body.content,
-      img: req.body.url,
+      content: sanitizeHtml(req.body.content),
+      img: sanitizeHtml(req.body.url),
       UserId: req.user.id,
     });
-    const hashtags = [...new Set(req.body.content.match(/#[^\s#]*/g))];
+    const hashtags = [
+      ...new Set(sanitizeHtml(req.body.content).match(/#[^\s#]*/g)),
+    ];
     if (hashtags) {
       const result = await Promise.all(
         hashtags.map((tag) => {

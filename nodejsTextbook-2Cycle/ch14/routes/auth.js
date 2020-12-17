@@ -2,6 +2,7 @@ const router = require("express").Router();
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
+const sanitizeHtml = require("sanitize-html");
 const { isNotLoggedIn, isLoggedIn } = require("./middlewares");
 
 // 회원가입 라우터
@@ -12,10 +13,10 @@ router.post("/join", isNotLoggedIn, async (req, res, next) => {
     if (exUser) {
       return res.redirect("/join?error=exist");
     }
-    const hash = await bcrypt.hash(password, 12);
+    const hash = await bcrypt.hash(sanitizeHtml(password), 12);
     await User.create({
-      email,
-      nick,
+      email: sanitizeHtml(email),
+      nick: sanitizeHtml(nick),
       password: hash,
     });
     return res.redirect("/");
